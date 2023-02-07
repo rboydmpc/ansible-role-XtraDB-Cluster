@@ -1,0 +1,103 @@
+# tasks for Red Hat Familly
+---
+- debug: var=xtradb_bind_address
+- debug: msg="{{ hostvars[ groups['db'][0] ].ansible_default_ipv4.address }}"
+
+- name: Disable SELinux
+  selinux:
+    state: disabled
+  when: ansible_selinux.status == 'enabled'
+
+- name: Import RPM GPG Key for Percona
+  rpm_key:
+    state: present
+    key: https://www.percona.com/downloads/RPM-GPG-KEY-percona
+
+- name: Percona | Import Percona Repo
+  package:
+    name: "{{ xtradb_repo_rpm }}"
+    state: present
+
+- name: Check if Percona Repo is unconfigured
+  stat:
+    path: "/etc/yum.repos.d/percona-original-release.repo"
+  register: percona_repo_original_repo
+
+- name: Check if Percona pxc-57 is enabled
+  stat:
+    path: "/etc/yum.repos.d/percona-pxc-57-release.repo"
+  register: percona_repo_pxc57_repo
+
+- name: Check if Percona tools is enabled
+  stat:
+    path: "/etc/yum.repos.d/percona-tools-release.repo"
+  register: percona_repo_tools_repo
+
+- name: Percona | Configure Percona Repo for MySQL 5.7 
+  command: percona-release enable-only pxc-57 release
+  when: (percona_repo_original_repo.stat.exists) or
+        (not percona_repo_pxc57_repo.stat.exists)
+
+- name: Percona | Configure Percona Repo for tools
+  command: percona-release enable tools release
+  when: not percona_repo_tools_repo.stat.exists
+
+- name: EL8 | Disable mysql module
+  command: dnf module disable -y mysql
+  register: mysql_module_disable
+  changed_when:
+    - '"Disabling modules" in mysql_module_disable.stdout'
+  when: (ansible_facts['distribution_major_version'] == "8")
+
+# - debug: var=mysql_module_disable
+
+- name: EL7 | Install MySQL Python connector
+  package:
+    name: MySQL-python
+    state: present
+  when: ansible_facts['distribution_major_version'] == "7"
+
+- name: EL8 | Install MySQL Python connector
+  package:
+    name: python3-PyMySQL
+    state: present
+  when: ansible_facts['distribution_major_version'] == "8"
+
+- name: EL7 | Set Python firewalld module package name
+  set_fact: 
+    python_firewalld_module_package: python-firewall
+  when: ansible_facts['distribution_major_version'] == "7"
+
+- name: EL8 | Set Python firewalld module package name
+  set_fact: 
+    python_firewalld_module_package: python3-firewall
+  when: ansible_facts['distribution_major_version'] == "8"
+
+- name: EL8 | Install diffutils
+  package:
+    name: diffutils
+    state: present
+  when: ansible_facts['distribution_major_version'] == "8"
+
+- name: EL | Install firewalld python module
+  package:
+    name: "{{ python_firewalld_module_package }}"
+    state: present
+  when: xtradb_configure_firewalld
+
+- name: EL | Set firewalld ports
+  firewalld:
+    port: "{{ fwport }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  with_items:
+    - 3306
+    - 4444
+    - 4567
+    - 4568
+  when: xtradb_configure_firewalld
+  loop_control:
+    loop_var: fwport
+
+...

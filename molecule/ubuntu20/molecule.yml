@@ -1,0 +1,48 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+# lint: |
+#   set -e
+#   yamllint .
+#   ansible-lint
+#   flake8
+platforms:
+  - name: instance1
+    image: ghcr.io/tryfan/ubuntu2004:master
+    # image: caseraw/ansible-molecule-centos:8
+    groups:
+      - db
+    #command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  - name: instance2
+    image: ghcr.io/tryfan/ubuntu2004:master
+    groups:
+      - db
+    #command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  - name: instance3
+    image: ghcr.io/tryfan/ubuntu2004:master
+    groups:
+      - db
+    #command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+provisioner:
+  name: ansible
+  playbooks:
+    converge: converge.yml
+verifier:
+  name: testinfra
