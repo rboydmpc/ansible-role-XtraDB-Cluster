@@ -14,7 +14,7 @@ xtradb_config_file: "{{ xtradb_confdir }}/wsrep.cnf"
 xtradb_packages:
   #- "percona-server-server-{{ xtradb_version }}"
   #- "percona-xtradb-cluster-{{ xtradb_version }}"
-  - percona-xtradb-cluster
+  - percona-server-server-5.7
   - python3-mysqldb
 xtradb_socket: "/var/run/mysqld/mysqld.sock"
 ...
