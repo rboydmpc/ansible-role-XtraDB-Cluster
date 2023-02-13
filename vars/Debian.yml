@@ -13,8 +13,8 @@ xtradb_confdir: /etc/mysql/percona-xtradb-cluster.conf.d
 xtradb_config_file: "{{ xtradb_confdir }}/wsrep.cnf"
 xtradb_packages:
   #- "percona-server-server-{{ xtradb_version }}"
-  - "percona-xtradb-cluster-{{ xtradb_version }}"
-  #- percona-xtradb-cluster
+  #- "percona-xtradb-cluster-{{ xtradb_version }}"
+  - percona-xtradb-cluster
   - python3-mysqldb
 xtradb_socket: "/var/run/mysqld/mysqld.sock"
 ...
