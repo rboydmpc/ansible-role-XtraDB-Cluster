@@ -3,11 +3,11 @@
 - debug: var=xtradb_bind_address
 - debug: msg="{{ hostvars[ groups['db'][0] ].ansible_default_ipv4.address }}"
 
-- name: Disable SELinux
-  selinux:
-    state: disabled
-  when: ansible_selinux.status == 'enabled'
-
+#- name: Disable SELinux
+#  selinux:
+#    state: disabled
+#  when: ansible_selinux.status == 'enabled'
+#
 - name: Import RPM GPG Key for Percona
   rpm_key:
     state: present
